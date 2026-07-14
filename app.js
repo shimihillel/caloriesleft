@@ -74,9 +74,16 @@ function render() {
     row.innerHTML = `
       <div class="food-dot-wrap" aria-hidden="true"><div class="food-dot ${pickDotClass(item.text)}"></div></div>
       <div class="food-text"></div>
-      <time class="food-time">${item.time}</time>
+      <div class="food-meta">
+        <time class="food-time">${item.time}</time>
+        <button class="repeat-btn" type="button" aria-label="להוסיף עוד אחד">+1</button>
+      </div>
     `;
     row.querySelector('.food-text').textContent = item.text;
+    row.querySelector('.repeat-btn').addEventListener('click', (event) => {
+      event.stopPropagation();
+      duplicateItem(item.id);
+    });
     row.addEventListener('click', () => openEdit(item.id));
     list.appendChild(row);
   });
@@ -134,6 +141,19 @@ async function copyDay() {
     temp.remove();
   }
   toast('הועתק לגוגז 💜');
+}
+
+function duplicateItem(id) {
+  const item = state.items.find(x => x.id === id);
+  if (!item) return;
+  state.items.push({
+    id: `${Date.now()}-repeat`,
+    text: item.text,
+    time: formatTime()
+  });
+  saveState();
+  render();
+  toast('נוסף עוד אחד ✨');
 }
 
 function openModal(id) {

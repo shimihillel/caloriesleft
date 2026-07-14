@@ -224,7 +224,29 @@ button { -webkit-tap-highlight-color: transparent; }
   overflow-wrap: anywhere;
 }
 .food-time { font-size: 13px; color: var(--muted); direction: ltr; }
-.food-item button {
+.food-meta {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+.repeat-btn {
+  min-width: 44px;
+  height: 30px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: #eee5fb;
+  color: #7e5fc2;
+  font-weight: 800;
+  font-size: 14px;
+  box-shadow: 0 4px 10px rgba(93,70,115,.10);
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 1;
+  position: static;
+}
+.repeat-btn:active { transform: scale(.95); }
+.food-item button:not(.repeat-btn) {
   grid-column: 1 / -1;
   position: absolute;
   opacity: 0;
@@ -405,6 +427,11 @@ body.evening .food-dot.dot-blue { color: #7eb7ff; background: #63a4ff; }
 body.evening .food-dot.dot-green { color: #b8dd9a; background: #aad48a; }
 body.evening .food-dot.dot-yellow { color: #ffd96b; background: #ffc92f; }
 body.evening .food-dot.dot-pink { color: #ffb1d3; background: #ff95bb; }
+body.evening .repeat-btn {
+  background: rgba(184,144,231,.18);
+  color: #d7b9ff;
+  box-shadow: 0 0 14px rgba(184,144,231,.12);
+}
 body.evening .composer { background: rgba(21,29,74,.78); }
 body.evening .composer textarea { color: white; }
 body.evening .action-btn.add { background: #ee6fae; }
