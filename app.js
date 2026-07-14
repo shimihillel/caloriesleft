@@ -48,19 +48,9 @@ function formatDate() {
   return new Intl.DateTimeFormat('he-IL', {weekday:'long', day:'numeric', month:'numeric'}).format(new Date());
 }
 
-function pickEmoji(text) {
-  const s = text.toLowerCase();
-  if (s.includes('קפה')) return '🥤';
-  if (s.includes('פריכ')) return '🍘';
-  if (s.includes('קוטג') || s.includes('גבינה')) return '🥣';
-  if (s.includes('משמש') || s.includes('אפרסק')) return '🍑';
-  if (s.includes('טורט') || s.includes('פיתה') || s.includes('סנדו')) return '🌯';
-  if (s.includes('סלט') || s.includes('ירק') || s.includes('שרי')) return '🥗';
-  if (s.includes('שוקולד') || s.includes('חטיף') || s.includes('קורני')) return '🍫';
-  if (s.includes('אבטיח')) return '🍉';
-  if (s.includes('ביצה')) return '🍳';
-  if (s.includes('יוגורט')) return '🥛';
-  return ['🍓','🍋','🥨','🫐','🍪'][Math.abs(hashCode(text)) % 5];
+function pickDotClass(text) {
+  const classes = ['dot-lavender','dot-orange','dot-blue','dot-green','dot-yellow','dot-pink'];
+  return classes[Math.abs(hashCode(text)) % classes.length];
 }
 
 function hashCode(str) {
@@ -82,7 +72,7 @@ function render() {
     row.className = 'food-item';
     row.dataset.id = item.id;
     row.innerHTML = `
-      <div class="food-emoji" aria-hidden="true">${pickEmoji(item.text)}</div>
+      <div class="food-dot-wrap" aria-hidden="true"><div class="food-dot ${pickDotClass(item.text)}"></div></div>
       <div class="food-text"></div>
       <time class="food-time">${item.time}</time>
     `;
