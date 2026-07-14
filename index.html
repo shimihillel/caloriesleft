@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff8e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="מה אכלתי?">
+  <title>מה אכלתי היום?</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero-card" aria-label="מצב קלוריות יומי">
+      <div class="hero-decoration sun" aria-hidden="true">
+        <span class="sun-face">•ᴗ•</span>
+      </div>
+      <div class="hero-decoration moon" aria-hidden="true">☾</div>
+      <div class="leaf leaf-a" aria-hidden="true"></div>
+      <div class="leaf leaf-b" aria-hidden="true"></div>
+
+      <div class="calorie-card">
+        <p class="hero-label">נשארו לך היום</p>
+        <div class="remaining-number" id="remainingNumber">1,100</div>
+        <div class="calorie-word">קלוריות</div>
+        <div class="consumed-line"><strong id="consumedNumber">0</strong> מתוך <span id="goalNumber">1,100</span></div>
+        <div class="segments" id="segments" aria-label="התקדמות יומית"></div>
+      </div>
+
+      <div class="last-update" id="lastUpdate">עוד לא עודכן היום</div>
+    </section>
+
+    <section class="content">
+      <header class="section-title-wrap">
+        <span class="sparkle" aria-hidden="true">✦</span>
+        <h1>מה אכלתי היום?</h1>
+        <span class="scribble" aria-hidden="true"></span>
+      </header>
+
+      <div id="emptyState" class="empty-state">
+        <div class="empty-emoji">🍑</div>
+        <strong>עוד לא כתבת כלום</strong>
+        <span>מתחילים בשורה אחת קטנה.</span>
+      </div>
+
+      <div id="foodList" class="food-list" aria-live="polite"></div>
+
+      <label class="composer">
+        <span class="composer-label">כתבי כאן כמה שורות…</span>
+        <textarea id="foodInput" rows="4" placeholder="קפה קר&#10;שתי פריכיות עם קוטג׳&#10;שני משמשים"></textarea>
+      </label>
+
+      <div class="actions">
+        <button id="addBtn" class="action-btn add" type="button">
+          <span class="action-icon">＋</span><span>להוסיף</span>
+        </button>
+        <button id="copyBtn" class="action-btn copy" type="button">
+          <span class="action-icon">▣</span><span>להעתיק</span>
+        </button>
+        <button id="updateBtn" class="action-btn update" type="button">
+          <span class="action-icon">↻</span><span>לעדכן</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="updateModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="updateTitle">
+      <button class="modal-close" data-close="updateModal" type="button" aria-label="סגירה">×</button>
+      <div class="modal-sparkle">✦</div>
+      <h2 id="updateTitle">כמה קלוריות יצא עד עכשיו?</h2>
+      <p>הכניסי את הסכום המצטבר שקיבלת מגוגז.</p>
+      <input id="calorieInput" class="number-input" type="number" inputmode="numeric" min="0" step="1" placeholder="460">
+      <button id="saveCaloriesBtn" class="modal-primary" type="button">שמירה</button>
+      <button class="modal-secondary" data-close="updateModal" type="button">ביטול</button>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="editModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+      <button class="modal-close" data-close="editModal" type="button" aria-label="סגירה">×</button>
+      <h2 id="editTitle">עריכת שורה</h2>
+      <textarea id="editInput" class="edit-input" rows="3"></textarea>
+      <button id="saveEditBtn" class="modal-primary" type="button">שמירה</button>
+      <button id="deleteItemBtn" class="modal-danger" type="button">מחיקה</button>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
