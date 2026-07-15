@@ -172,16 +172,32 @@ button { -webkit-tap-highlight-color: transparent; }
   position: relative;
   z-index: 5;
   margin-top: -1px;
-  padding: 31px 20px calc(28px + env(safe-area-inset-bottom));
+  padding: 31px 20px calc(170px + env(safe-area-inset-bottom));
   border-radius: 44px 44px 0 0;
   background: rgba(255,252,246,.97);
 }
+
+.bottom-panel {
+  position: sticky;
+  bottom: 0;
+  z-index: 12;
+  margin: 18px -8px 0;
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  border-radius: 28px 28px 0 0;
+  background: linear-gradient(180deg, rgba(255,252,246,0) 0%, rgba(255,252,246,.88) 14%, rgba(255,252,246,.98) 30%, rgba(255,252,246,.99) 100%);
+  backdrop-filter: blur(10px);
+}
+
 .section-title-wrap { text-align: center; margin-bottom: 24px; position: relative; }
 .section-title-wrap h1 { margin: 0; font-size: 34px; line-height: 1; font-weight: 800; }
 .sparkle { position: absolute; right: 18px; top: -7px; color: #8a68c7; font-size: 27px; }
 .scribble { display: block; width: 84px; height: 5px; margin: 13px auto 0; border-radius: 999px; background: var(--lavender); transform: rotate(-2deg); }
 
-.food-list { display: grid; gap: 10px; }
+.food-list {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 10px;
+}
 .food-item {
   display: grid;
   grid-template-columns: 58px 1fr auto;
@@ -268,7 +284,7 @@ button { -webkit-tap-highlight-color: transparent; }
 
 .composer {
   display: block;
-  margin-top: 18px;
+  margin-top: 0;
   padding: 17px 18px 14px;
   border: 2px solid rgba(172,135,225,.55);
   border-radius: 27px;
@@ -294,7 +310,7 @@ button { -webkit-tap-highlight-color: transparent; }
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 .action-btn {
   direction: rtl;
@@ -414,6 +430,9 @@ body.evening .consumed-line strong { color: #ed88d5; }
 body.evening .segment { background: rgba(255,255,255,.11); border-color: rgba(255,255,255,.06); }
 body.evening .segment.filled { background: linear-gradient(180deg,#e78bd8,#ae84de); }
 body.evening .content { background: rgba(10,16,47,.98); }
+body.evening .bottom-panel {
+  background: linear-gradient(180deg, rgba(10,16,47,0) 0%, rgba(10,16,47,.86) 14%, rgba(10,16,47,.97) 30%, rgba(10,16,47,.99) 100%);
+}
 body.evening .food-item { background: rgba(26,35,83,.93); border-color: rgba(255,255,255,.05); box-shadow: 0 8px 20px rgba(0,0,0,.20); }
 body.evening .food-dot-wrap { background: rgba(188,145,231,.18); }
 body.evening .food-dot {
@@ -452,6 +471,7 @@ body.evening .number-input, body.evening .edit-input { background: #0f163d; colo
 body.evening .modal-close { color: white; }
 
 @media (max-width: 390px) {
+  .content { padding-bottom: calc(185px + env(safe-area-inset-bottom)); }
   .hero-card { padding-left: 18px; padding-right: 18px; min-height: 315px; }
   .calorie-card { width: 89%; }
   .section-title-wrap h1 { font-size: 31px; }
