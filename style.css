@@ -172,7 +172,7 @@ button { -webkit-tap-highlight-color: transparent; }
   position: relative;
   z-index: 5;
   margin-top: -1px;
-  padding: 31px 20px calc(320px + env(safe-area-inset-bottom));
+  padding: 31px 20px calc(375px + env(safe-area-inset-bottom));
   border-radius: 44px 44px 0 0;
   background: rgba(255,252,246,.97);
 }
@@ -191,6 +191,26 @@ button { -webkit-tap-highlight-color: transparent; }
   box-shadow: 0 -12px 34px rgba(69,48,40,.14);
   backdrop-filter: blur(14px);
 }
+
+.quick-adds {
+  direction: rtl;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.quick-add-btn {
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1e8ff;
+  color: #6e54af;
+  font-weight: 800;
+  font-size: 16px;
+  box-shadow: 0 5px 14px rgba(93,70,115,.10);
+  cursor: pointer;
+}
+.quick-add-btn:active { transform: scale(.97); }
 
 .section-title-wrap { text-align: center; margin-bottom: 24px; position: relative; }
 .section-title-wrap h1 { margin: 0; font-size: 34px; line-height: 1; font-weight: 800; }
@@ -438,6 +458,12 @@ body.evening .bottom-panel {
   background: rgba(10,16,47,.96);
   box-shadow: 0 -12px 34px rgba(0,0,0,.32);
 }
+body.evening .quick-add-btn {
+  background: rgba(184,144,231,.18);
+  color: #dec8ff;
+  box-shadow: 0 0 14px rgba(184,144,231,.10);
+}
+
 body.evening .food-item { background: rgba(26,35,83,.93); border-color: rgba(255,255,255,.05); box-shadow: 0 8px 20px rgba(0,0,0,.20); }
 body.evening .food-dot-wrap { background: rgba(188,145,231,.18); }
 body.evening .food-dot {
@@ -476,7 +502,7 @@ body.evening .number-input, body.evening .edit-input { background: #0f163d; colo
 body.evening .modal-close { color: white; }
 
 @media (max-width: 390px) {
-  .content { padding-bottom: calc(335px + env(safe-area-inset-bottom)); }
+  .content { padding-bottom: calc(390px + env(safe-area-inset-bottom)); }
   .hero-card { padding-left: 18px; padding-right: 18px; min-height: 315px; }
   .calorie-card { width: 89%; }
   .section-title-wrap h1 { font-size: 31px; }

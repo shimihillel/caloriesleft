@@ -109,6 +109,17 @@ function render() {
   }
 }
 
+function addQuickItem(text) {
+  state.items.push({
+    id: `${Date.now()}-quick`,
+    text,
+    time: formatTime()
+  });
+  saveState();
+  render();
+  toast(`${text} נוסף ☕️`);
+}
+
 function addItems() {
   const raw = $('foodInput').value;
   const lines = raw.split(/\n+/).map(x => x.trim()).filter(Boolean);
@@ -218,6 +229,10 @@ function toast(message) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove('show'), 1900);
 }
+
+document.querySelectorAll('[data-quick-add]').forEach(button => {
+  button.addEventListener('click', () => addQuickItem(button.dataset.quickAdd));
+});
 
 $('addBtn').addEventListener('click', addItems);
 $('copyBtn').addEventListener('click', copyDay);
