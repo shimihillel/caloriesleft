@@ -11,7 +11,13 @@ function todayKey() {
 }
 
 function defaultState() {
-  return { date: todayKey(), items: [], consumed: 0, updatedAt: null };
+  return {
+    date: todayKey(),
+    items: [],
+    consumed: 0,
+    updatedAt: null,
+    shortcuts: ['קפה קר', 'קפה חם']
+  };
 }
 
 function loadState() {
@@ -22,7 +28,10 @@ function loadState() {
       date: parsed.date,
       items: Array.isArray(parsed.items) ? parsed.items : [],
       consumed: Number.isFinite(Number(parsed.consumed)) ? Number(parsed.consumed) : 0,
-      updatedAt: parsed.updatedAt || null
+      updatedAt: parsed.updatedAt || null,
+      shortcuts: Array.isArray(parsed.shortcuts)
+        ? parsed.shortcuts.slice(0, 6)
+        : ['קפה קר', 'קפה חם']
     };
   } catch (_) {
     return defaultState();
@@ -71,15 +80,21 @@ function render() {
     const row = document.createElement('article');
     row.className = 'food-item';
     row.dataset.id = item.id;
+    const isShortcut = state.shortcuts.includes(item.text);
     row.innerHTML = `
       <div class="food-dot-wrap" aria-hidden="true"><div class="food-dot ${pickDotClass(item.text)}"></div></div>
       <div class="food-text"></div>
       <div class="food-meta">
         <time class="food-time">${item.time}</time>
+        <button class="star-btn ${isShortcut ? 'active' : ''}" type="button" aria-label="${isShortcut ? 'להסיר מהקיצורים' : 'להוסיף לקיצורים'}">${isShortcut ? '★' : '☆'}</button>
         <button class="repeat-btn" type="button" aria-label="להוסיף עוד אחד">+1</button>
       </div>
     `;
     row.querySelector('.food-text').textContent = item.text;
+    row.querySelector('.star-btn').addEventListener('click', (event) => {
+      event.stopPropagation();
+      toggleShortcut(item.text);
+    });
     row.querySelector('.repeat-btn').addEventListener('click', (event) => {
       event.stopPropagation();
       duplicateItem(item.id);
@@ -88,6 +103,7 @@ function render() {
     list.appendChild(row);
   });
   $('emptyState').hidden = state.items.length > 0;
+  renderShortcuts();
 
   const segments = $('segments');
   segments.innerHTML = '';
@@ -107,6 +123,63 @@ function render() {
   if (state.consumed > GOAL) {
     $('remainingNumber').textContent = `−${Math.abs(remaining).toLocaleString('he-IL')}`;
   }
+}
+
+function renderShortcuts() {
+  const list = $('shortcutsList');
+  list.innerHTML = '';
+  $('shortcutsCount').textContent = `${state.shortcuts.length}/6`;
+
+  if (!state.shortcuts.length) {
+    const empty = document.createElement('div');
+    empty.className = 'shortcuts-empty';
+    empty.textContent = 'לחצי על ☆ ליד פריט כדי להוסיף קיצור';
+    list.appendChild(empty);
+    return;
+  }
+
+  state.shortcuts.forEach(text => {
+    const chip = document.createElement('div');
+    chip.className = 'shortcut-chip';
+
+    const main = document.createElement('button');
+    main.className = 'shortcut-main';
+    main.type = 'button';
+    main.textContent = text;
+    main.addEventListener('click', () => addQuickItem(text));
+
+    const remove = document.createElement('button');
+    remove.className = 'shortcut-remove';
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `להסיר את ${text} מהקיצורים`);
+    remove.textContent = '×';
+    remove.addEventListener('click', () => removeShortcut(text));
+
+    chip.append(main, remove);
+    list.appendChild(chip);
+  });
+}
+
+function toggleShortcut(text) {
+  if (state.shortcuts.includes(text)) {
+    removeShortcut(text);
+    return;
+  }
+  if (state.shortcuts.length >= 6) {
+    toast('יש כבר 6 קיצורים — תורידי אחד קודם');
+    return;
+  }
+  state.shortcuts.push(text);
+  saveState();
+  render();
+  toast('נוסף לקיצורים ★');
+}
+
+function removeShortcut(text) {
+  state.shortcuts = state.shortcuts.filter(item => item !== text);
+  saveState();
+  render();
+  toast('הוסר מהקיצורים');
 }
 
 function addQuickItem(text) {
@@ -229,10 +302,6 @@ function toast(message) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove('show'), 1900);
 }
-
-document.querySelectorAll('[data-quick-add]').forEach(button => {
-  button.addEventListener('click', () => addQuickItem(button.dataset.quickAdd));
-});
 
 $('addBtn').addEventListener('click', addItems);
 $('copyBtn').addEventListener('click', copyDay);

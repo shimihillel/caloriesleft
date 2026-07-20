@@ -192,25 +192,67 @@ button { -webkit-tap-highlight-color: transparent; }
   backdrop-filter: blur(14px);
 }
 
-.quick-adds {
-  direction: rtl;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.shortcuts-section {
   margin-bottom: 10px;
 }
-.quick-add-btn {
+.shortcuts-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 7px;
+  color: #665b61;
+}
+.shortcuts-heading strong { font-size: 16px; }
+.shortcuts-heading span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #978c92;
+}
+.shortcuts-list {
+  direction: rtl;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 5px;
+  scrollbar-width: none;
+}
+.shortcuts-list::-webkit-scrollbar { display: none; }
+.shortcut-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
   min-height: 42px;
-  border: 0;
   border-radius: 999px;
   background: #f1e8ff;
+  box-shadow: 0 5px 14px rgba(93,70,115,.10);
+}
+.shortcut-main,
+.shortcut-remove {
+  border: 0;
+  background: transparent;
   color: #6e54af;
   font-weight: 800;
-  font-size: 16px;
-  box-shadow: 0 5px 14px rgba(93,70,115,.10);
   cursor: pointer;
 }
-.quick-add-btn:active { transform: scale(.97); }
+.shortcut-main {
+  min-height: 42px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+.shortcut-remove {
+  width: 34px;
+  align-self: stretch;
+  border-right: 1px solid rgba(110,84,175,.14);
+  font-size: 18px;
+}
+.shortcut-main:active,
+.shortcut-remove:active { transform: scale(.96); }
+.shortcuts-empty {
+  padding: 8px 4px;
+  color: #8d8188;
+  font-size: 14px;
+}
 
 .section-title-wrap { text-align: center; margin-bottom: 24px; position: relative; }
 .section-title-wrap h1 { margin: 0; font-size: 34px; line-height: 1; font-weight: 800; }
@@ -266,9 +308,30 @@ button { -webkit-tap-highlight-color: transparent; }
 .food-time { font-size: 13px; color: var(--muted); direction: ltr; }
 .food-meta {
   display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
   justify-items: end;
-  gap: 7px;
+  gap: 6px;
 }
+.food-time { grid-column: 1 / -1; }
+.star-btn {
+  width: 32px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #fff3cf;
+  color: #c69b19;
+  font-size: 19px;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.star-btn.active {
+  background: #ffe39a;
+  color: #a97700;
+}
+.star-btn:active { transform: scale(.94); }
 .repeat-btn {
   min-width: 44px;
   height: 30px;
@@ -286,7 +349,7 @@ button { -webkit-tap-highlight-color: transparent; }
   position: static;
 }
 .repeat-btn:active { transform: scale(.95); }
-.food-item button:not(.repeat-btn) {
+.food-item button:not(.repeat-btn):not(.star-btn) {
   grid-column: 1 / -1;
   position: absolute;
   opacity: 0;
@@ -458,10 +521,17 @@ body.evening .bottom-panel {
   background: rgba(10,16,47,.96);
   box-shadow: 0 -12px 34px rgba(0,0,0,.32);
 }
-body.evening .quick-add-btn {
+body.evening .shortcuts-heading { color: #eee8ff; }
+body.evening .shortcuts-heading span,
+body.evening .shortcuts-empty { color: #aaa6c6; }
+body.evening .shortcut-chip {
   background: rgba(184,144,231,.18);
-  color: #dec8ff;
   box-shadow: 0 0 14px rgba(184,144,231,.10);
+}
+body.evening .shortcut-main,
+body.evening .shortcut-remove { color: #dec8ff; }
+body.evening .shortcut-remove {
+  border-right-color: rgba(222,200,255,.14);
 }
 
 body.evening .food-item { background: rgba(26,35,83,.93); border-color: rgba(255,255,255,.05); box-shadow: 0 8px 20px rgba(0,0,0,.20); }
@@ -481,6 +551,14 @@ body.evening .repeat-btn {
   background: rgba(184,144,231,.18);
   color: #d7b9ff;
   box-shadow: 0 0 14px rgba(184,144,231,.12);
+}
+body.evening .star-btn {
+  background: rgba(255,210,102,.14);
+  color: #ffd56b;
+}
+body.evening .star-btn.active {
+  background: rgba(255,210,102,.24);
+  color: #ffe08d;
 }
 body.evening .composer { background: rgba(21,29,74,.78); }
 body.evening .composer textarea { color: white; }

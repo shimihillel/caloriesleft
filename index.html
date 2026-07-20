@@ -50,10 +50,13 @@
       <div id="foodList" class="food-list" aria-live="polite"></div>
 
       <div class="bottom-panel" id="bottomPanel">
-        <div class="quick-adds" aria-label="קיצורים קבועים">
-          <button class="quick-add-btn" type="button" data-quick-add="קפה קר">קפה קר</button>
-          <button class="quick-add-btn" type="button" data-quick-add="קפה חם">קפה חם</button>
-        </div>
+        <section class="shortcuts-section" aria-labelledby="shortcutsTitle">
+          <div class="shortcuts-heading">
+            <strong id="shortcutsTitle">קיצורים</strong>
+            <span id="shortcutsCount">2/6</span>
+          </div>
+          <div class="shortcuts-list" id="shortcutsList"></div>
+        </section>
 
         <label class="composer">
           <span class="composer-label">כתבי כאן כמה שורות…</span>
