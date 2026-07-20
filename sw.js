@@ -1,5 +1,5 @@
-const CACHE = 'ma-achalti-v1';
-const ASSETS = ['./','./index.html','./style.css','./app.js','./manifest.json','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
+const CACHE = 'ma-achalti-v6-1';
+const ASSETS = ['./','./index.html','./style.css?v=6.1','./app.js?v=6.1','./manifest.json?v=6.1','./icon-192.png','./icon-512.png','./icon-maskable-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)));
   self.skipWaiting();
@@ -9,5 +9,13 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 self.addEventListener('fetch', event => {
-  event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request)));
+  if (event.request.mode === 'navigate') {
+    event.respondWith(fetch(event.request).catch(() => caches.match('./index.html')));
+    return;
+  }
+  event.respondWith(fetch(event.request).then(response => {
+    const copy = response.clone();
+    caches.open(CACHE).then(cache => cache.put(event.request, copy));
+    return response;
+  }).catch(() => caches.match(event.request)));
 });
