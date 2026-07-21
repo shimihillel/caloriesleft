@@ -1,9 +1,9 @@
-const CACHE = 'ma-achalti-v7';
+const CACHE = 'ma-achalti-v8';
 const ASSETS = [
   './',
   './index.html',
-  './style.css?v=7',
-  './app.js?v=7',
+  './style.css?v=8',
+  './app.js?v=8',
   './manifest.json',
   './icon-192.png',
   './icon-512.png',

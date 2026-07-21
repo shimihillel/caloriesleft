@@ -1,4 +1,5 @@
 const STORAGE_KEY = 'ma-achalti-v1';
+const SHORTCUTS_KEY = 'ma-achalti-shortcuts-v1';
 const GOAL = 1100;
 
 const $ = (id) => document.getElementById(id);
@@ -10,28 +11,82 @@ function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function defaultState() {
+function makeShortcut(text) {
+  const fullText = String(text || '').trim();
+  const label = fullText
+    .replace(/\s*[-–—·,:]?\s*\d+(?:[.,]\d+)?\s*(?:קלוריות|קלוריה|קל׳|קק"ל)?\s*$/u, '')
+    .replace(/\s+/g, ' ')
+    .trim() || fullText;
+
+  return { label, text: fullText };
+}
+
+function normalizeShortcuts(value) {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set();
+
+  return value
+    .map(item => {
+      if (typeof item === 'string') return makeShortcut(item);
+      if (item && typeof item === 'object') {
+        const text = String(item.text || '').trim();
+        const label = String(item.label || makeShortcut(text).label).trim();
+        return text ? { label, text } : null;
+      }
+      return null;
+    })
+    .filter(Boolean)
+    .filter(item => {
+      if (seen.has(item.text)) return false;
+      seen.add(item.text);
+      return true;
+    })
+    .slice(0, 6);
+}
+
+function loadShortcuts(legacyParsed = null) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SHORTCUTS_KEY));
+    const normalized = normalizeShortcuts(saved);
+    if (normalized.length) return normalized;
+  } catch (_) {}
+
+  const legacy = normalizeShortcuts(legacyParsed?.shortcuts);
+  if (legacy.length) {
+    localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(legacy));
+    return legacy;
+  }
+
+  const defaults = [makeShortcut('קפה קר'), makeShortcut('קפה חם')];
+  localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(defaults));
+  return defaults;
+}
+
+function defaultState(shortcuts = loadShortcuts()) {
   return {
     date: todayKey(),
     items: [],
     consumed: 0,
     updatedAt: null,
-    shortcuts: ['קפה קר', 'קפה חם']
+    shortcuts
   };
 }
 
 function loadState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!parsed || parsed.date !== todayKey()) return defaultState();
+    const shortcuts = loadShortcuts(parsed);
+
+    if (!parsed || parsed.date !== todayKey()) {
+      return defaultState(shortcuts);
+    }
+
     return {
       date: parsed.date,
       items: Array.isArray(parsed.items) ? parsed.items : [],
       consumed: Number.isFinite(Number(parsed.consumed)) ? Number(parsed.consumed) : 0,
       updatedAt: parsed.updatedAt || null,
-      shortcuts: Array.isArray(parsed.shortcuts)
-        ? parsed.shortcuts.slice(0, 6)
-        : ['קפה קר', 'קפה חם']
+      shortcuts
     };
   } catch (_) {
     return defaultState();
@@ -39,7 +94,15 @@ function loadState() {
 }
 
 function saveState() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  const dailyState = {
+    date: state.date,
+    items: state.items,
+    consumed: state.consumed,
+    updatedAt: state.updatedAt
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyState));
+  localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(state.shortcuts));
 }
 
 function setTheme() {
@@ -80,7 +143,7 @@ function render() {
     const row = document.createElement('article');
     row.className = 'food-item';
     row.dataset.id = item.id;
-    const isShortcut = state.shortcuts.includes(item.text);
+    const isShortcut = state.shortcuts.some(shortcut => shortcut.text === item.text);
     row.innerHTML = `
       <div class="food-dot-wrap" aria-hidden="true"><div class="food-dot ${pickDotClass(item.text)}"></div></div>
       <div class="food-text"></div>
@@ -138,22 +201,23 @@ function renderShortcuts() {
     return;
   }
 
-  state.shortcuts.forEach(text => {
+  state.shortcuts.forEach(shortcut => {
     const chip = document.createElement('div');
     chip.className = 'shortcut-chip';
 
     const main = document.createElement('button');
     main.className = 'shortcut-main';
     main.type = 'button';
-    main.textContent = text;
-    main.addEventListener('click', () => addQuickItem(text));
+    main.textContent = shortcut.label;
+    main.title = shortcut.text;
+    main.addEventListener('click', () => addQuickItem(shortcut));
 
     const remove = document.createElement('button');
     remove.className = 'shortcut-remove';
     remove.type = 'button';
-    remove.setAttribute('aria-label', `להסיר את ${text} מהקיצורים`);
+    remove.setAttribute('aria-label', `להסיר את ${shortcut.label} מהקיצורים`);
     remove.textContent = '×';
-    remove.addEventListener('click', () => removeShortcut(text));
+    remove.addEventListener('click', () => removeShortcut(shortcut.text));
 
     chip.append(main, remove);
     list.appendChild(chip);
@@ -161,36 +225,40 @@ function renderShortcuts() {
 }
 
 function toggleShortcut(text) {
-  if (state.shortcuts.includes(text)) {
+  const existing = state.shortcuts.find(shortcut => shortcut.text === text);
+
+  if (existing) {
     removeShortcut(text);
     return;
   }
+
   if (state.shortcuts.length >= 6) {
     toast('יש כבר 6 קיצורים — תורידי אחד קודם');
     return;
   }
-  state.shortcuts.push(text);
+
+  state.shortcuts.push(makeShortcut(text));
   saveState();
   render();
   toast('נוסף לקיצורים ★');
 }
 
 function removeShortcut(text) {
-  state.shortcuts = state.shortcuts.filter(item => item !== text);
+  state.shortcuts = state.shortcuts.filter(shortcut => shortcut.text !== text);
   saveState();
   render();
   toast('הוסר מהקיצורים');
 }
 
-function addQuickItem(text) {
+function addQuickItem(shortcut) {
   state.items.push({
     id: `${Date.now()}-quick`,
-    text,
+    text: shortcut.text,
     time: formatTime()
   });
   saveState();
   render();
-  toast(`${text} נוסף ☕️`);
+  toast(`${shortcut.label} נוסף ✨`);
 }
 
 function addItems() {
