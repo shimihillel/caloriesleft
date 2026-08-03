@@ -11,27 +11,39 @@ function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function makeShortcut(text) {
+function extractCalories(text) {
+  const source = String(text || '');
+  const explicit = source.match(/(\d+(?:[.,]\d+)?)\s*(?:קלוריות|קלוריה|קל׳|קק"ל)/u);
+  if (explicit) return Math.round(Number(explicit[1].replace(',', '.')));
+  const trailing = source.match(/(?:[-–—·,:]\s*|\s)(\d+(?:[.,]\d+)?)\s*$/u);
+  if (trailing) return Math.round(Number(trailing[1].replace(',', '.')));
+  return null;
+}
+
+function makeShortcut(text, existingCalories = null) {
   const fullText = String(text || '').trim();
+  const calories = Number.isFinite(Number(existingCalories))
+    ? Math.round(Number(existingCalories))
+    : extractCalories(fullText);
   const label = fullText
     .replace(/\s*[-–—·,:]?\s*\d+(?:[.,]\d+)?\s*(?:קלוריות|קלוריה|קל׳|קק"ל)?\s*$/u, '')
     .replace(/\s+/g, ' ')
     .trim() || fullText;
-
-  return { label, text: fullText };
+  return { label, text: fullText, calories };
 }
 
 function normalizeShortcuts(value) {
   if (!Array.isArray(value)) return [];
   const seen = new Set();
-
   return value
     .map(item => {
       if (typeof item === 'string') return makeShortcut(item);
       if (item && typeof item === 'object') {
         const text = String(item.text || '').trim();
-        const label = String(item.label || makeShortcut(text).label).trim();
-        return text ? { label, text } : null;
+        if (!text) return null;
+        const shortcut = makeShortcut(text, item.calories);
+        shortcut.label = String(item.label || shortcut.label).trim() || shortcut.label;
+        return shortcut;
       }
       return null;
     })
@@ -192,7 +204,6 @@ function renderShortcuts() {
   const list = $('shortcutsList');
   list.innerHTML = '';
   $('shortcutsCount').textContent = `${state.shortcuts.length}/6`;
-
   if (!state.shortcuts.length) {
     const empty = document.createElement('div');
     empty.className = 'shortcuts-empty';
@@ -200,25 +211,22 @@ function renderShortcuts() {
     list.appendChild(empty);
     return;
   }
-
   state.shortcuts.forEach(shortcut => {
     const chip = document.createElement('div');
     chip.className = 'shortcut-chip';
-
     const main = document.createElement('button');
     main.className = 'shortcut-main';
     main.type = 'button';
     main.textContent = shortcut.label;
-    main.title = shortcut.text;
+    main.title = shortcut.calories !== null ? `${shortcut.text} — ${shortcut.calories} קלוריות` : shortcut.text;
+    main.setAttribute('aria-label', shortcut.calories !== null ? `${shortcut.label}, ${shortcut.calories} קלוריות` : shortcut.label);
     main.addEventListener('click', () => addQuickItem(shortcut));
-
     const remove = document.createElement('button');
     remove.className = 'shortcut-remove';
     remove.type = 'button';
     remove.setAttribute('aria-label', `להסיר את ${shortcut.label} מהקיצורים`);
     remove.textContent = '×';
     remove.addEventListener('click', () => removeShortcut(shortcut.text));
-
     chip.append(main, remove);
     list.appendChild(chip);
   });
@@ -226,21 +234,20 @@ function renderShortcuts() {
 
 function toggleShortcut(text) {
   const existing = state.shortcuts.find(shortcut => shortcut.text === text);
-
   if (existing) {
     removeShortcut(text);
     return;
   }
-
   if (state.shortcuts.length >= 6) {
     toast('יש כבר 6 קיצורים — תורידי אחד קודם');
     return;
   }
-
-  state.shortcuts.push(makeShortcut(text));
+  const shortcut = makeShortcut(text);
+  state.shortcuts.push(shortcut);
   saveState();
   render();
-  toast('נוסף לקיצורים ★');
+  if (shortcut.calories !== null) toast(`נוסף לקיצורים עם ${shortcut.calories} קלוריות ★`);
+  else toast('נוסף לקיצורים בלי חישוב קלוריות ★');
 }
 
 function removeShortcut(text) {
@@ -251,14 +258,15 @@ function removeShortcut(text) {
 }
 
 function addQuickItem(shortcut) {
-  state.items.push({
-    id: `${Date.now()}-quick`,
-    text: shortcut.text,
-    time: formatTime()
-  });
+  state.items.push({ id: `${Date.now()}-quick`, text: shortcut.text, time: formatTime() });
+  if (shortcut.calories !== null && Number.isFinite(Number(shortcut.calories))) {
+    state.consumed += Math.round(Number(shortcut.calories));
+    state.updatedAt = formatTime();
+  }
   saveState();
   render();
-  toast(`${shortcut.label} נוסף ✨`);
+  if (shortcut.calories !== null) toast(`${shortcut.label} נוסף · +${shortcut.calories} קלוריות`);
+  else toast(`${shortcut.label} נוסף בלי עדכון קלוריות`);
 }
 
 function addItems() {
