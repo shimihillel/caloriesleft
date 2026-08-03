@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'ma-achalti-v1';
-const SHORTCUTS_KEY = 'ma-achalti-shortcuts-v1';
+const SHORTCUTS_KEY = 'ma-achalti-shortcuts-v2';
+const LEGACY_SHORTCUTS_KEY = 'ma-achalti-shortcuts-v1';
 const GOAL = 1100;
 
 const $ = (id) => document.getElementById(id);
@@ -36,16 +37,28 @@ function makeShortcut(text, existingCalories = null) {
 function normalizeShortcuts(value) {
   if (!Array.isArray(value)) return [];
   const seen = new Set();
+
   return value
     .map(item => {
       if (typeof item === 'string') return makeShortcut(item);
+
       if (item && typeof item === 'object') {
         const text = String(item.text || '').trim();
         if (!text) return null;
-        const shortcut = makeShortcut(text, item.calories);
+
+        const parsedFromText = extractCalories(text);
+        let storedCalories = item.calories;
+
+        // Repair the v9/v10 bug: a missing value was sometimes saved as zero.
+        if (Number(storedCalories) === 0 && parsedFromText !== null && parsedFromText > 0) {
+          storedCalories = parsedFromText;
+        }
+
+        const shortcut = makeShortcut(text, storedCalories);
         shortcut.label = String(item.label || shortcut.label).trim() || shortcut.label;
         return shortcut;
       }
+
       return null;
     })
     .filter(Boolean)
@@ -59,9 +72,18 @@ function normalizeShortcuts(value) {
 
 function loadShortcuts(legacyParsed = null) {
   try {
-    const saved = JSON.parse(localStorage.getItem(SHORTCUTS_KEY));
-    const normalized = normalizeShortcuts(saved);
-    if (normalized.length) return normalized;
+    const savedV2 = JSON.parse(localStorage.getItem(SHORTCUTS_KEY));
+    const normalizedV2 = normalizeShortcuts(savedV2);
+    if (normalizedV2.length) return normalizedV2;
+  } catch (_) {}
+
+  try {
+    const savedV1 = JSON.parse(localStorage.getItem(LEGACY_SHORTCUTS_KEY));
+    const migratedV1 = normalizeShortcuts(savedV1);
+    if (migratedV1.length) {
+      localStorage.setItem(SHORTCUTS_KEY, JSON.stringify(migratedV1));
+      return migratedV1;
+    }
   } catch (_) {}
 
   const legacy = normalizeShortcuts(legacyParsed?.shortcuts);
@@ -421,9 +443,9 @@ function toast(message) {
   toast.timer = setTimeout(() => el.classList.remove('show'), 1900);
 }
 
-$('editShortcutsBtn').addEventListener('click', openShortcutPicker);
-$('saveShortcutBtn').addEventListener('click', saveShortcut);
-$('deleteShortcutBtn').addEventListener('click', deleteEditingShortcut);
+$('editShortcutsBtn')?.addEventListener('click', openShortcutPicker);
+$('saveShortcutBtn')?.addEventListener('click', saveShortcut);
+$('deleteShortcutBtn')?.addEventListener('click', deleteEditingShortcut);
 
 $('addBtn').addEventListener('click', addItems);
 $('copyBtn').addEventListener('click', copyDay);
@@ -450,5 +472,12 @@ render();
 setInterval(setTheme, 60_000);
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map(registration => registration.unregister()));
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+    } catch (_) {}
+  });
 }
