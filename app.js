@@ -5,6 +5,7 @@ const GOAL = 1100;
 const $ = (id) => document.getElementById(id);
 let state = loadState();
 let editingId = null;
+let editingShortcutText = null;
 
 function todayKey() {
   const d = new Date();
@@ -22,9 +23,9 @@ function extractCalories(text) {
 
 function makeShortcut(text, existingCalories = null) {
   const fullText = String(text || '').trim();
-  const calories = Number.isFinite(Number(existingCalories))
-    ? Math.round(Number(existingCalories))
-    : extractCalories(fullText);
+  const calories = existingCalories === null || existingCalories === undefined || existingCalories === ''
+    ? extractCalories(fullText)
+    : (Number.isFinite(Number(existingCalories)) ? Math.round(Number(existingCalories)) : null);
   const label = fullText
     .replace(/\s*[-–—·,:]?\s*\d+(?:[.,]\d+)?\s*(?:קלוריות|קלוריה|קל׳|קק"ל)?\s*$/u, '')
     .replace(/\s+/g, ' ')
@@ -234,20 +235,9 @@ function renderShortcuts() {
 
 function toggleShortcut(text) {
   const existing = state.shortcuts.find(shortcut => shortcut.text === text);
-  if (existing) {
-    removeShortcut(text);
-    return;
-  }
-  if (state.shortcuts.length >= 6) {
-    toast('יש כבר 6 קיצורים — תורידי אחד קודם');
-    return;
-  }
-  const shortcut = makeShortcut(text);
-  state.shortcuts.push(shortcut);
-  saveState();
-  render();
-  if (shortcut.calories !== null) toast(`נוסף לקיצורים עם ${shortcut.calories} קלוריות ★`);
-  else toast('נוסף לקיצורים בלי חישוב קלוריות ★');
+  if (existing) { removeShortcut(text); return; }
+  if (state.shortcuts.length >= 6) { toast('יש כבר 6 קיצורים — תורידי אחד קודם'); return; }
+  openShortcutEditor(makeShortcut(text), true);
 }
 
 function removeShortcut(text) {
@@ -255,6 +245,58 @@ function removeShortcut(text) {
   saveState();
   render();
   toast('הוסר מהקיצורים');
+}
+
+function openShortcutEditor(shortcut, isNew = false) {
+  editingShortcutText = isNew ? null : shortcut.text;
+  $('shortcutLabelInput').value = shortcut.label || '';
+  $('shortcutTextInput').value = shortcut.text || '';
+  $('shortcutCaloriesInput').value = shortcut.calories === null || shortcut.calories === undefined ? '' : shortcut.calories;
+  $('deleteShortcutBtn').hidden = isNew;
+  openModal('shortcutModal');
+  setTimeout(() => $('shortcutLabelInput').focus(), 100);
+}
+
+function saveShortcut() {
+  const label = $('shortcutLabelInput').value.trim();
+  const text = $('shortcutTextInput').value.trim();
+  const caloriesRaw = $('shortcutCaloriesInput').value.trim();
+  if (!label || !text) { toast('צריך שם וטקסט מלא'); return; }
+  const calories = caloriesRaw === '' ? null : Math.round(Number(caloriesRaw));
+  if (calories !== null && (!Number.isFinite(calories) || calories < 0)) { toast('צריך מספר קלוריות תקין'); return; }
+  const shortcut = { label, text, calories };
+  if (editingShortcutText === null) {
+    if (state.shortcuts.length >= 6) { toast('יש כבר 6 קיצורים'); return; }
+    state.shortcuts.push(shortcut);
+  } else {
+    const index = state.shortcuts.findIndex(item => item.text === editingShortcutText);
+    if (index !== -1) state.shortcuts[index] = shortcut;
+  }
+  saveState(); render(); closeModal('shortcutModal'); toast('הקיצור נשמר ✨');
+}
+
+function deleteEditingShortcut() {
+  if (editingShortcutText === null) return;
+  removeShortcut(editingShortcutText);
+  closeModal('shortcutModal');
+}
+
+function openShortcutPicker() {
+  const list = $('shortcutPickerList'); list.innerHTML = '';
+  if (!state.shortcuts.length) {
+    const empty = document.createElement('div'); empty.className='shortcuts-empty'; empty.textContent='עוד אין קיצורים'; list.appendChild(empty);
+  } else {
+    state.shortcuts.forEach(shortcut => {
+      const button = document.createElement('button');
+      button.className='shortcut-picker-item'; button.type='button';
+      button.innerHTML='<span></span><small></small>';
+      button.querySelector('span').textContent=shortcut.label;
+      button.querySelector('small').textContent=shortcut.calories === null ? 'בלי חישוב' : `${shortcut.calories} קל׳`;
+      button.addEventListener('click',()=>{ closeModal('shortcutPickerModal'); openShortcutEditor(shortcut,false); });
+      list.appendChild(button);
+    });
+  }
+  openModal('shortcutPickerModal');
 }
 
 function addQuickItem(shortcut) {
@@ -378,6 +420,10 @@ function toast(message) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => el.classList.remove('show'), 1900);
 }
+
+$('editShortcutsBtn').addEventListener('click', openShortcutPicker);
+$('saveShortcutBtn').addEventListener('click', saveShortcut);
+$('deleteShortcutBtn').addEventListener('click', deleteEditingShortcut);
 
 $('addBtn').addEventListener('click', addItems);
 $('copyBtn').addEventListener('click', copyDay);

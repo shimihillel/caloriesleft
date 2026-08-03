@@ -53,7 +53,10 @@
         <section class="shortcuts-section" aria-labelledby="shortcutsTitle">
           <div class="shortcuts-heading">
             <strong id="shortcutsTitle">קיצורים</strong>
-            <span id="shortcutsCount">2/6</span>
+            <div class="shortcuts-heading-actions">
+              <span id="shortcutsCount">2/6</span>
+              <button id="editShortcutsBtn" class="edit-shortcuts-btn" type="button">עריכה</button>
+            </div>
           </div>
           <div class="shortcuts-list" id="shortcutsList"></div>
         </section>
@@ -97,6 +100,35 @@
       <textarea id="editInput" class="edit-input" rows="3"></textarea>
       <button id="saveEditBtn" class="modal-primary" type="button">שמירה</button>
       <button id="deleteItemBtn" class="modal-danger" type="button">מחיקה</button>
+    </section>
+  </div>
+
+
+  <div class="modal-backdrop" id="shortcutModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="shortcutTitle">
+      <button class="modal-close" data-close="shortcutModal" type="button" aria-label="סגירה">×</button>
+      <h2 id="shortcutTitle">עריכת קיצור</h2>
+      <label class="field-label">שם קצר
+        <input id="shortcutLabelInput" class="text-input" type="text" placeholder="פיתה כוסמין">
+      </label>
+      <label class="field-label">הטקסט שיוכנס לרשימה
+        <textarea id="shortcutTextInput" class="edit-input" rows="3" placeholder="פיתה כוסמין 99 קלוריות"></textarea>
+      </label>
+      <label class="field-label">קלוריות בלחיצה
+        <input id="shortcutCaloriesInput" class="number-input" type="number" inputmode="numeric" min="0" step="1" placeholder="99">
+      </label>
+      <button id="saveShortcutBtn" class="modal-primary" type="button">שמירה</button>
+      <button id="deleteShortcutBtn" class="modal-danger" type="button">מחיקת קיצור</button>
+      <button class="modal-secondary" data-close="shortcutModal" type="button">ביטול</button>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="shortcutPickerModal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="shortcutPickerTitle">
+      <button class="modal-close" data-close="shortcutPickerModal" type="button" aria-label="סגירה">×</button>
+      <h2 id="shortcutPickerTitle">עריכת קיצורים</h2>
+      <div id="shortcutPickerList" class="shortcut-picker-list"></div>
+      <button class="modal-secondary" data-close="shortcutPickerModal" type="button">סגירה</button>
     </section>
   </div>
 

@@ -589,3 +589,14 @@ body.evening .modal-close { color: white; }
   .food-dot-wrap { width: 44px; height: 44px; }
   .food-dot { width: 20px; height: 20px; }
 }
+
+.shortcuts-heading-actions {display:flex;align-items:center;gap:8px;}
+.edit-shortcuts-btn {border:0;border-radius:999px;padding:5px 10px;background:#eee5fb;color:#765ab7;font-weight:800;cursor:pointer;}
+.field-label {display:grid;gap:7px;margin-top:14px;text-align:right;font-weight:700;color:var(--ink);}
+.text-input {width:100%;min-height:52px;padding:10px 14px;border:1px solid rgba(86,66,71,.14);border-radius:16px;outline:0;background:white;color:var(--ink);}
+.shortcut-picker-list {display:grid;gap:9px;margin-top:16px;}
+.shortcut-picker-item {width:100%;min-height:52px;border:0;border-radius:17px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:#f4edff;color:#684f9f;font-weight:800;cursor:pointer;}
+.shortcut-picker-item small {color:#8b7ba7;font-weight:700;}
+body.evening .edit-shortcuts-btn,body.evening .shortcut-picker-item {background:rgba(184,144,231,.18);color:#dec8ff;}
+body.evening .shortcut-picker-item small {color:#b8acd1;}
+body.evening .text-input {background:#0f163d;color:white;border-color:rgba(255,255,255,.08);}
