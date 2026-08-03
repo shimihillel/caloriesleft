@@ -116,9 +116,21 @@ function loadState() {
       return defaultState(shortcuts);
     }
 
+    const items = (Array.isArray(parsed.items) ? parsed.items : []).map(item => {
+      if (item.calories !== undefined && item.calories !== null) return item;
+
+      const matchingShortcut = shortcuts.find(shortcut => shortcut.text === item.text);
+      return {
+        ...item,
+        calories: matchingShortcut && matchingShortcut.calories !== null
+          ? Math.round(Number(matchingShortcut.calories))
+          : null
+      };
+    });
+
     return {
       date: parsed.date,
-      items: Array.isArray(parsed.items) ? parsed.items : [],
+      items,
       consumed: Number.isFinite(Number(parsed.consumed)) ? Number(parsed.consumed) : 0,
       updatedAt: parsed.updatedAt || null,
       shortcuts
@@ -322,14 +334,26 @@ function openShortcutPicker() {
 }
 
 function addQuickItem(shortcut) {
-  state.items.push({ id: `${Date.now()}-quick`, text: shortcut.text, time: formatTime() });
-  if (shortcut.calories !== null && Number.isFinite(Number(shortcut.calories))) {
-    state.consumed += Math.round(Number(shortcut.calories));
+  const calories = shortcut.calories !== null && Number.isFinite(Number(shortcut.calories))
+    ? Math.round(Number(shortcut.calories))
+    : null;
+
+  state.items.push({
+    id: `${Date.now()}-quick`,
+    text: shortcut.text,
+    time: formatTime(),
+    calories
+  });
+
+  if (calories !== null) {
+    state.consumed += calories;
     state.updatedAt = formatTime();
   }
+
   saveState();
   render();
-  if (shortcut.calories !== null) toast(`${shortcut.label} נוסף · +${shortcut.calories} קלוריות`);
+
+  if (calories !== null) toast(`${shortcut.label} נוסף · +${calories} קלוריות`);
   else toast(`${shortcut.label} נוסף בלי עדכון קלוריות`);
 }
 
@@ -342,7 +366,8 @@ function addItems() {
     state.items.push({
       id: `${Date.now()}-${index}`,
       text,
-      time: now
+      time: now,
+      calories: null
     });
   });
   $('foodInput').value = '';
@@ -370,14 +395,29 @@ async function copyDay() {
 function duplicateItem(id) {
   const item = state.items.find(x => x.id === id);
   if (!item) return;
+
+  const calories = item.calories !== null && item.calories !== undefined &&
+    Number.isFinite(Number(item.calories))
+      ? Math.round(Number(item.calories))
+      : null;
+
   state.items.push({
     id: `${Date.now()}-repeat`,
     text: item.text,
-    time: formatTime()
+    time: formatTime(),
+    calories
   });
+
+  if (calories !== null) {
+    state.consumed += calories;
+    state.updatedAt = formatTime();
+  }
+
   saveState();
   render();
-  toast('נוסף עוד אחד ✨');
+
+  if (calories !== null) toast(`נוסף עוד אחד · +${calories} קלוריות`);
+  else toast('נוסף עוד אחד ✨');
 }
 
 function openModal(id) {
@@ -428,11 +468,27 @@ function saveEdit() {
 }
 
 function deleteItem() {
+  const item = state.items.find(x => x.id === editingId);
+  if (!item) return;
+
+  const calories = item.calories !== null && item.calories !== undefined &&
+    Number.isFinite(Number(item.calories))
+      ? Math.round(Number(item.calories))
+      : null;
+
   state.items = state.items.filter(x => x.id !== editingId);
+
+  if (calories !== null) {
+    state.consumed = Math.max(0, state.consumed - calories);
+    state.updatedAt = formatTime();
+  }
+
   saveState();
   render();
   closeModal('editModal');
-  toast('נמחק');
+
+  if (calories !== null) toast(`נמחק · −${calories} קלוריות`);
+  else toast('נמחק');
 }
 
 function toast(message) {
